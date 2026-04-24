@@ -66,7 +66,7 @@ class OrderProcessorContract:
         }
         result = self.call(order)
         self.assertEqual(result["status"], "accepted")
-        self.assertIn("order_id", result)
+        self.assertTrue(result.get("order_id"), "order_id must be a non-empty string")
         self.assertAlmostEqual(result["total"], 39.97, places=2)
 
     # -- Customer guard-rails ------------------------------------------------
@@ -139,6 +139,17 @@ class OrderProcessorContract:
         result = self.call(order)
         self.assertEqual(result["status"], "rejected")
         self.assertEqual(result["reason"], "Missing shipping_address")
+
+    def test_none_order_data_is_rejected(self):
+        result = self.call(None)
+        self.assertEqual(result["status"], "rejected")
+        self.assertEqual(result["reason"], "Invalid order data")
+
+    def test_empty_order_data_is_rejected(self):
+        # {} is falsy in Python, so both implementations treat it as None
+        result = self.call({})
+        self.assertEqual(result["status"], "rejected")
+        self.assertEqual(result["reason"], "Invalid order data")
 
 
 # ---------------------------------------------------------------------------

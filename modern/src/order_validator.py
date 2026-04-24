@@ -18,7 +18,7 @@ from typing import Optional, Protocol, runtime_checkable
 # ---------------------------------------------------------------------------
 
 class ValidationResult:
-    """Immutable outcome of a validation pass."""
+    """Outcome of a validation pass. Do not mutate attributes after construction."""
 
     def __init__(self, accepted: bool, reason: str = "", order_id: str = "", total: float = 0.0):
         self.accepted = accepted
@@ -133,16 +133,19 @@ class OrderValidator:
         order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
         return ValidationResult.accept(order_id, total)
 
-    def _validate_items(self, items: list) -> tuple:
-        """Check stock availability for each line item. Returns (total, error_or_empty)."""
+    def _validate_items(self, items: list) -> "tuple[float, str]":
+        """Check stock availability for each line item. Returns (total, error_or_empty).
+
+        Rounds each line before accumulating to match legacy floating-point behavior.
+        """
         total = 0.0
         for item in items:
-            sku = item.get("sku")
+            sku = item.get("sku") or "<missing>"
             stock = self._inventory.get_item(sku)
             if stock is None:
                 return 0.0, f"Unknown SKU: {sku}"
             qty = item.get("quantity", 0)
             if stock["qty"] < qty:
                 return 0.0, f"Insufficient stock for {sku}"
-            total += stock["price"] * qty
+            total += round(stock["price"] * qty, 2)
         return round(total, 2), ""

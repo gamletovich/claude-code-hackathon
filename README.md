@@ -113,18 +113,21 @@ Verdict: PASS
 
 ## If We Had More Time
 
+All 9 challenges are complete. The remaining engineering work is on the
+product side — the next extraction steps:
+
 1. **Extract InventoryService** — the riskiest seam (global dict mutations, no rollback).
    Needs a saga pattern or two-phase commit before it touches production.
+   Scouts ranked this second-highest risk; start here only after the characterization
+   suite has run in production for at least one sprint.
 2. **Concrete repos** — swap `InMemoryInventoryRepo` for a PostgreSQL implementation
-   behind the same `InventoryRepo` Protocol. The validator doesn't change.
+   behind the same `InventoryRepo` Protocol. The validator doesn't change at all.
 3. **Error codes** — `ValidationResult` currently carries a human-readable reason string.
-   Finance's ERP integration needs machine-readable codes (Story 1.4).
-4. **PreToolUse hook** — mechanically enforce the `legacy/` boundary so no Claude session
-   can accidentally "fix" the monolith and corrupt the eval baseline.
-5. **Task subagents (The Scouts)** — fan out one subagent per seam candidate, each scoring
-   extraction risk independently, then aggregate into a ranked plan.
-6. **Cutover runbook** — the 3am ops guide. What triggers a rollback, who approves, what
-   the decision tree looks like. Currently just implied by the ADR.
+   Finance's ERP integration needs machine-readable codes (Story 1.4 in `docs/stories.md`).
+4. **Extract CustomerCreditService** — SQL injection fix lives here. Parameterize the
+   query and put a real CustomerRepo behind it once InventoryService is stable.
+5. **Retire the monolith** — delete `legacy/src/order_processor.py` once all seams are
+   in production and the characterization suite has been green for two releases.
 
 ---
 

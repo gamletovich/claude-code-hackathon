@@ -223,8 +223,9 @@ def main() -> None:
                 print(f"    Agent reasoning: {blocker}")
         print()
 
-    print("Full verdict JSON written to: scripts/scouts_output.json")
-    with open("scripts/scouts_output.json", "w") as f:
+    output_path = os.path.join(os.path.dirname(__file__), "scouts_output.json")
+    print(f"Full verdict JSON written to: {output_path}")
+    with open(output_path, "w") as f:
         json.dump(verdicts, f, indent=2)
 
 

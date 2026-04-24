@@ -20,8 +20,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install pytest
+        run: pip install pytest
+
       - name: Run characterization tests (legacy + modern)
-        run: python -m unittest discover tests/characterization/ -v
+        run: python -m pytest tests/characterization/ -v
 
       - name: Run eval scorecard (modern must score >= 95)
         run: python tests/eval/score.py

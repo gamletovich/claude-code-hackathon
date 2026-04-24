@@ -75,11 +75,13 @@ first and revisit async in ADR-002.
 part of the legacy code (global dict, no rollback, concurrency issues). We need the
 characterization test suite to be green and trusted before we touch it.
 
-**Not adding an anti-corruption layer (ACL) hook yet.** The scenario mentions a
-`PreToolUse` hook to enforce the boundary mechanically. We chose not to add it in
-this sprint because the team is small enough that a prompt in `CLAUDE.md` is
-sufficient. If the team grows past 4 engineers touching this codebase, the ACL hook
-is the right next step — and the prompt vs. hook distinction will be documented in ADR-003.
+**Prompt AND hook for boundary enforcement, not just one.** The `legacy/CLAUDE.md`
+prompt is the probabilistic preference ("do not modify"). The `.claude/hooks/guard_legacy.py`
+`PreToolUse` hook is the deterministic hard stop — it blocks `Write`, `Edit`, and
+`MultiEdit` calls targeting `legacy/` regardless of what the prompt says. Both are wired
+in `.claude/settings.json`. The distinction: prompts guide judgment, hooks enforce rules
+that must never be overridden. This repo needs the hook because the eval baseline must stay
+intact; the prompt alone is insufficient when the cost of a mistake is a corrupted scorecard.
 
 ---
 

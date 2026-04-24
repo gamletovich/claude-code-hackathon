@@ -82,7 +82,7 @@ and doesn't break the warehouse ops team's daily order flows mid-extraction.
 **so that** I don't need to manually step through 7 scenarios after each release.
 
 **Acceptance criteria:**
-- AC1: `python -m pytest tests/characterization/ -v` runs all 14 behavioral tests (7 scenarios × 2 implementations) and reports pass/fail within 5 seconds.
+- AC1: `python -m pytest tests/characterization/ -v` runs all 18 behavioral tests (9 scenarios × 2 implementations) and reports pass/fail within 5 seconds.
 - AC2: `python tests/eval/score.py` exits 0 when modern code scores ≥ 95/100.
 - AC3: Both commands run without a database, SMTP server, or network access.
 

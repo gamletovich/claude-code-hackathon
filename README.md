@@ -45,12 +45,12 @@ during the hackathon session.
 | 1 | The Stories | Done | 5 stories with acceptance criteria in `docs/stories.md` |
 | 2 | The Patient | Done | Legacy monolith generated with 5 documented flaws |
 | 3 | The Map | Done | ADR in `docs/adr.md` — seams ranked by coupling and risk |
-| 4 | The Pin | Done | 7 characterization scenarios, 14 tests total (legacy + modern) |
-| 5 | The Cut | Done | `OrderValidator` extracted, all 14 tests green |
-| 6 | The Fence | Partial | Enforced by CLAUDE.md prompt; hook not yet implemented |
+| 4 | The Pin | Done | 9 characterization scenarios, 18 tests total (legacy + modern) |
+| 5 | The Cut | Done | `OrderValidator` extracted, all 18 tests green |
+| 6 | The Fence | Done | `PreToolUse` hook blocks `legacy/` writes + CLAUDE.md prompt |
 | 7 | The Scorecard | Done | `tests/eval/score.py` — static analysis, legacy 20 → modern 100 |
-| 8 | The Weekend | Skipped | Would be ADR-002 in a longer session |
-| 9 | The Scouts | Skipped | Task subagents — good stretch for Act 2 |
+| 8 | The Weekend | Done | `docs/runbook.md` — cutover runbook with rollback decision tree |
+| 9 | The Scouts | Done | `scripts/scouts.py` — 5 parallel subagents, ranked extraction plan |
 
 ---
 
@@ -69,9 +69,10 @@ no DB writes, returns a value, trivially injectable. See `docs/adr.md` for the f
 monolith before extracting the service. This gave us a regression net with teeth — a
 future commit that silently changes validation behavior fails loudly with a precise message.
 
-**Prompt over hook for boundary enforcement.** `legacy/CLAUDE.md` says "do not modify."
-A `PreToolUse` hook would enforce this mechanically, but at team size 1 the prompt is
-sufficient. The ADR documents when to escalate to a hook.
+**Both prompt AND hook for boundary enforcement.** `legacy/CLAUDE.md` says "do not modify"
+(probabilistic preference). `.claude/hooks/guard_legacy.py` blocks `Write` and `Edit` calls
+targeting `legacy/` mechanically (deterministic guardrail). ADR-001 explains why each
+mechanism was chosen and when to use one vs. the other.
 
 ---
 
@@ -84,8 +85,8 @@ No Docker required. Needs Python 3.10+ only.
 git clone https://github.com/gamletovich/claude-code-hackathon.git
 cd claude-code-hackathon
 
-# Run characterization tests (14 tests, legacy + modern)
-python -m pytest tests/characterization/ -v
+# Run characterization tests (18 tests: 9 scenarios × 2 implementations)
+python -m unittest discover tests/characterization/ -v
 
 # Run eval scorecard
 python tests/eval/score.py
@@ -93,6 +94,11 @@ python tests/eval/score.py
 # Open the presentation
 open presentation/index.html   # macOS
 start presentation/index.html  # Windows
+
+# Run the scouts (Challenge 9 — requires Anthropic API key)
+pip install anthropic
+export ANTHROPIC_API_KEY=sk-...
+python scripts/scouts.py
 ```
 
 Expected output from the scorecard:

@@ -228,8 +228,8 @@
     <div style="margin-top:auto; display:flex; gap:10px; flex-wrap:wrap;">
       <span class="tag tag-red">Before: 20 / 100</span>
       <span class="tag tag-green">After: 100 / 100</span>
-      <span class="tag tag-blue">14 tests · all green</span>
-      <span class="tag tag-blue">5 flaws · all fixed</span>
+      <span class="tag tag-blue">18 tests · all green</span>
+      <span class="tag tag-blue">9/9 challenges · CI passing</span>
     </div>
   </div>
 
@@ -291,19 +291,19 @@
     <div class="timeline">
       <div class="timeline-item">
         <div class="timeline-dot done">1</div>
-        <div><h3>Characterization tests</h3><p>Pin the monolith's observable behavior — bugs included — before touching a single line. 7 scenarios × 2 implementations = 14 tests.</p></div>
+        <div><h3>Characterization tests</h3><p>Pin the monolith's observable behavior — bugs included — before touching a single line. 9 scenarios × 2 implementations = 18 tests.</p></div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot done">2</div>
-        <div><h3>Extract OrderValidator</h3><p>Clean class, injected repos, typed result, zero globals, max nesting depth 3. Passes the same 7 scenarios.</p></div>
+        <div><h3>Extract OrderValidator + eval scorecard</h3><p>Clean class, injected repos, typed result, zero globals. Eval confirms: legacy 20/100 → modern 100/100. CI enforces it on every commit.</p></div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot done">3</div>
-        <div><h3>Eval scorecard</h3><p>Static analysis confirms the extraction: legacy 20/100 → modern 100/100. Runs in CI on every commit.</p></div>
+        <div><h3>The Fence — PreToolUse hook</h3><p>Mechanical guardrail blocks any write to <code>legacy/</code>. Paired with a CLAUDE.md prompt. ADR-001 documents why each mechanism was chosen.</p></div>
       </div>
       <div class="timeline-item">
-        <div class="timeline-dot later">4</div>
-        <div><h3 style="color:var(--muted)">Next: Inventory service</h3><p>Second strangler step. Requires the characterization suite to already be trusted.</p></div>
+        <div class="timeline-dot done">4</div>
+        <div><h3>The Scouts — 5 parallel subagents</h3><p>Fan-out risk analysis: one Claude call per candidate seam, each scoring coupling / coverage / data tangle / criticality. Ranked output compared to the human ADR.</p></div>
       </div>
     </div>
   </div>
@@ -316,7 +316,7 @@
        Bugs are pinned too. The failure message tells you exactly what changed.</p>
     <div class="code">
 <span class="kw">class</span> OrderProcessorContract:
-    <span class="cmt"># 7 test methods shared across legacy and modern</span>
+    <span class="cmt"># 9 test methods shared across legacy and modern</span>
 
     <span class="kw">def</span> test_valid_order_is_accepted(self):
         result = self.call(VALID_ORDER)
@@ -339,7 +339,7 @@
         )
     </div>
     <div style="margin-top:16px; display:flex; gap:10px;">
-      <span class="tag tag-green">14 / 14 passing</span>
+      <span class="tag tag-green">18 / 18 passing</span>
       <span class="tag tag-blue">no DB · no network · &lt;0.1s</span>
     </div>
   </div>
@@ -451,64 +451,67 @@
         <p>Root → legacy → modern. Each directory gets the context that fits it. Legacy says "do not modify." Modern says "no globals, max depth 3."</p>
       </div>
       <div class="card">
-        <h3>Parallel file writes</h3>
-        <p>All 10 deliverables written in a single session: legacy monolith, modern service, 14 characterization tests, eval harness, ADR, stories, deck.</p>
+        <h3>PreToolUse hook</h3>
+        <p><code>.claude/hooks/guard_legacy.py</code> blocks any write to <code>legacy/</code> mechanically. Paired with a CLAUDE.md prompt. ADR-001 documents prompt vs. hook — when each is the right tool.</p>
       </div>
       <div class="card">
-        <h3>Eval harness as a guardrail</h3>
-        <p>The score.py script runs in CI. If someone commits a global to modern/, the score drops and the pipeline fails — no human review needed.</p>
+        <h3>Eval harness as CI gate</h3>
+        <p><code>score.py</code> runs on every push via GitHub Actions. If anyone commits a global to modern/, the score drops and the pipeline fails — no human review needed.</p>
       </div>
       <div class="card">
         <h3>Mixin test contract</h3>
-        <p><code>OrderProcessorContract</code> defines 7 tests. Both legacy and modern inherit them. Same assertions, different <code>setUp</code> — behavioral equivalence proven mechanically.</p>
+        <p><code>OrderProcessorContract</code> defines 9 tests. Both legacy and modern inherit them. Same assertions, different <code>setUp</code> — behavioral equivalence proven mechanically.</p>
       </div>
       <div class="card">
-        <h3>Protocol typing</h3>
-        <p>Claude Code suggested <code>Protocol</code> for the repo interfaces — makes test doubles trivial to write and decouples the validator from any specific storage technology.</p>
+        <h3>Fan-out subagents (The Scouts)</h3>
+        <p>5 parallel Claude API calls, one per extraction candidate. Each independently scores coupling / coverage / data tangle / criticality. Coordinator ranks and compares to the human ADR.</p>
       </div>
       <div class="card">
         <h3>Time saved</h3>
-        <p>Archaeology (5 flaws) + extraction + tests + eval + ADR + deck — 2 hours of human direction, &lt;10 minutes of code written by hand.</p>
+        <p>All 9 challenges completed: monolith + extraction + 18 tests + eval + ADR + runbook + hook + scouts + deck. ~2 hours of human direction.</p>
       </div>
     </div>
   </div>
 
   <!-- ═══════════════════════════════ SLIDE 10: What's Next ════════════════════════ -->
   <div class="slide" id="s10">
-    <div class="slide-tag">Roadmap</div>
-    <h2>What's Next</h2>
-    <div class="timeline">
-      <div class="timeline-item">
-        <div class="timeline-dot later">2</div>
-        <div>
-          <h3>Extract InventoryService <span class="tag tag-yellow" style="font-size:11px;margin-left:8px;">High risk</span></h3>
-          <p>The write path — deduct stock, rollback on failure. Needs a saga pattern to replace the current global mutation.</p>
-        </div>
+    <div class="slide-tag">Delivery Summary + Roadmap</div>
+    <h2>What We Shipped / What Comes Next</h2>
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="card">
+        <h3 style="color:var(--green); margin-bottom:10px;">Shipped today — 9/9 challenges</h3>
+        <p style="font-size:13px; line-height:1.8;">
+          ✓ Legacy monolith with 5 documented flaws<br>
+          ✓ Extracted OrderValidator (100/100 score)<br>
+          ✓ 18 characterization tests — all green<br>
+          ✓ Eval scorecard in GitHub Actions CI<br>
+          ✓ PreToolUse hook + three-level CLAUDE.md<br>
+          ✓ 5 parallel scout subagents, ranked output<br>
+          ✓ ADR, user stories, cutover runbook
+        </p>
       </div>
-      <div class="timeline-item">
-        <div class="timeline-dot later">3</div>
-        <div>
-          <h3>Extract CustomerService</h3>
-          <p>Credit balance management. Requires a real data store behind the CustomerRepo protocol — swap InMemory for a SQLAlchemy impl.</p>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot later">4</div>
-        <div>
-          <h3>Wire in FraudChecker</h3>
-          <p>The HTTP call is already extracted (caller's responsibility in the new design). Now it just needs a concrete implementation and a circuit breaker.</p>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot later">5</div>
-        <div>
-          <h3>Retire the monolith</h3>
-          <p>Once all seams are extracted and in production, <code>legacy/src/order_processor.py</code> is deleted. The commit history tells the whole story.</p>
+      <div>
+        <div class="timeline" style="margin-top:0;">
+          <div class="timeline-item">
+            <div class="timeline-dot later">2</div>
+            <div><h3>Extract InventoryService <span class="tag tag-yellow" style="font-size:11px;margin-left:6px;">High risk</span></h3><p>Saga pattern to replace global dict mutation + rollback.</p></div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot later">3</div>
+            <div><h3>Extract CustomerCreditService</h3><p>SQLAlchemy behind the CustomerRepo protocol — swap InMemory out.</p></div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot later">4</div>
+            <div><h3>Retire the monolith</h3><p>Delete <code>legacy/src/order_processor.py</code>. The commit history tells the whole story.</p></div>
+          </div>
         </div>
       </div>
     </div>
-    <div style="margin-top:24px; padding:16px 20px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);">
+    <div style="padding:16px 20px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);">
       <strong>Repo:</strong> <a href="https://github.com/gamletovich/claude-code-hackathon" style="color:var(--accent)">github.com/gamletovich/claude-code-hackathon</a>
+      &nbsp;·&nbsp; <strong>CI:</strong> <span style="color:var(--green)">passing</span>
+      &nbsp;·&nbsp; <strong>Score:</strong> <span style="color:var(--green)">100/100</span>
+      &nbsp;·&nbsp; <strong>Tests:</strong> <span style="color:var(--green)">18/18</span>
     </div>
   </div>
 

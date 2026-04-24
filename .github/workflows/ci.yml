@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Characterization tests + eval scorecard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run characterization tests (legacy + modern)
+        run: python -m unittest discover tests/characterization/ -v
+
+      - name: Run eval scorecard (modern must score >= 95)
+        run: python tests/eval/score.py
